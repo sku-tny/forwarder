@@ -162,7 +162,16 @@ def check_new_verification_emails(
                 if status != "OK":
                     continue
 
-                msg = email.message_from_bytes(msg_data[0][1])
+                # msg_data structure can vary — find the bytes payload
+                raw_email = None
+                for part in msg_data:
+                    if isinstance(part, tuple) and isinstance(part[1], bytes):
+                        raw_email = part[1]
+                        break
+                if raw_email is None:
+                    continue
+
+                msg = email.message_from_bytes(raw_email)
                 subject = _decode_header_str(msg.get("Subject", ""))
                 sender  = _decode_header_str(msg.get("From",    ""))
                 to_raw  = _decode_header_str(msg.get("To",      ""))
